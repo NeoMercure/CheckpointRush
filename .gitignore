@@ -107,3 +107,6 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+/CheckpointRush/.vscode
+/CheckpointRush/Library
+/CheckpointRush/UserSettings
