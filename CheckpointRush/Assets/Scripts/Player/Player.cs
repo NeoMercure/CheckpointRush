@@ -14,12 +14,15 @@ public class Player : MonoBehaviour
 
     private Rigidbody rb;
 
+    private GameManager gameManager;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         // Get components
         rb = GetComponent<Rigidbody>();
+        gameManager = FindAnyObjectByType<GameManager>();
     }
 
     // Update is called once per frame
@@ -30,7 +33,10 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        Movement();
+        if(!gameManager.IsGameOver)
+        {
+            Movement();
+        }
     }
 
     private void Movement()
