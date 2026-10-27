@@ -110,3 +110,5 @@ InitTestScene*.unity*
 /CheckpointRush/.vscode
 /CheckpointRush/Library
 /CheckpointRush/UserSettings
+/CheckpointRush/Temp
+/CheckpointRush/Build
