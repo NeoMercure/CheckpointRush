@@ -1,76 +1,70 @@
 using System;
 using System.IO;
 using UnityEngine;
+using System.Collections.Generic;
 
 [Serializable]
 public class PlayerData
 {
-    // 2 : Data instance
-    public PlayerInfoData playerInfoDataInstance;
+    public List<PlayerInfoData> playerInfoDataInstance;
 
-    // 3 : Initialize the nested data class
     public PlayerData()
     {
-        playerInfoDataInstance = new PlayerInfoData();
+        playerInfoDataInstance = new();
     }
 
-    // 4 : Getter and setter with automatic save
-    public string PlayerName
+    public void Add(PlayerInfoData data)
     {
-        get { return playerInfoDataInstance.name; }
-        set
+        playerInfoDataInstance.Add(data);
+        Save();
+    }
+
+    public void RemoveAtIdx(int index)
+    {
+        //Index is valid index in the list, if so remove
+        if (index >= 0 && index <= playerInfoDataInstance.Count)
         {
-            playerInfoDataInstance.name = value;
+            playerInfoDataInstance.RemoveAt(index);
             Save();
+        }
+        else
+        {
+            Debug.LogError("Remove Index invalid");
         }
     }
 
-    public string SurnameStr
+    public void Update(int index, PlayerInfoData data)
     {
-        get { return playerInfoDataInstance.surname; }
-        set
+        //Index is valid index in the list
+        if (index >= 0 && index <= playerInfoDataInstance.Count)
         {
-            playerInfoDataInstance.surname = value;
+            playerInfoDataInstance[index] = data;
             Save();
+        }
+        else
+        {
+            Debug.LogError("Update Index invalid");
         }
     }
 
-    public string EmailStr
+    public PlayerInfoData Get(int index)
     {
-        get { return playerInfoDataInstance.email; }
-        set
+        //Index is valid index in the list
+        if (index >= 0 && index <= playerInfoDataInstance.Count)
         {
-            playerInfoDataInstance.email = value;
-            Save();
+            return playerInfoDataInstance[index];
+        }
+        else
+        {
+            Debug.LogError("Get Index invalid");
+            return null;
         }
     }
 
-    public string PhoneNumberStr
-    {
-        get { return playerInfoDataInstance.phoneNumber; }
-        set
-        {
-            playerInfoDataInstance.phoneNumber = value;
-            Save();
-        }
-    }
-
-    public GenderType GenderType
-    {
-        get { return playerInfoDataInstance.genderType; }
-        set
-        {
-            playerInfoDataInstance.genderType = value;
-            Save();
-        }
-    }
-
-    // 5 : File Path
     public string FilePath
     {
         get { return Path.Combine(Application.persistentDataPath, "Save.json"); }
     }
-
 
     private void Save()
     {
@@ -105,6 +99,15 @@ public class PlayerInfoData
     public string email;
     public string phoneNumber;
     public GenderType genderType;
+
+    public PlayerInfoData(string name, string surname, string email, string phoneNumber, GenderType genderType)
+    {
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.genderType = genderType;
+    }
 }
 
 public enum GenderType
