@@ -39,12 +39,26 @@ public class SaveManager : MonoBehaviour
     //________________________________________
     public void Save(string path, string data)
     {
-        // 7 : 
+        // 7 : Write data to the file
         File.WriteAllText(path, data);
+        Debug.Log("Yes SAVE");
     }
 
-    public void Load(string path, string data)
+    // 10 : Return data read from file
+    public string LoadFromFile(string path)
     {
+        string loadData = string.Empty;
 
+        // 10.5 : Check if the file exists
+        if (File.Exists(path))
+        {
+            Debug.Log("Get data");
+            loadData = File.ReadAllText(path);
+            Debug.Log($"Get data: {loadData}");
+            return loadData;
+        }
+
+        Debug.LogError("No File founds in " + path);
+        return loadData;
     }
 }

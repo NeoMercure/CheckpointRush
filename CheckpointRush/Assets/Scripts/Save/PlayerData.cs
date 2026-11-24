@@ -58,25 +58,41 @@ public class PlayerData
     public GenderType GenderType
     {
         get { return playerInfoDataInstance.genderType; }
-        set { playerInfoDataInstance.genderType = value;
+        set
+        {
+            playerInfoDataInstance.genderType = value;
             Save();
         }
     }
 
     // 5 : File Path
-    public string FilePath = Path.Combine(Application.persistentDataPath, "Save.json");
+    public string FilePath
+    {
+        get { return Path.Combine(Application.persistentDataPath, "Save.json"); }
+    }
+
 
     private void Save()
     {
         // 6 : Create rawData in JSON
         string rawData = JsonUtility.ToJson(this);
-        SaveManager.Instance.Save(rawData, rawData);
+        SaveManager.Instance.Save(FilePath, rawData);
     }
 
-    private void Load()
+    public PlayerData Load()
     {
-        // 8 : 
+        // 8 : Retrieve the data from the file
+        string loadRawData = SaveManager.Instance.LoadFromFile(FilePath);
 
+        // 10 : Check whether the data is empty
+        if (loadRawData == string.Empty)
+        {
+            Debug.Log("Create new PlayerData");
+            return new PlayerData();
+        }
+
+        PlayerData loadData = JsonUtility.FromJson<PlayerData>(loadRawData);
+        return loadData;
     }
 }
 
