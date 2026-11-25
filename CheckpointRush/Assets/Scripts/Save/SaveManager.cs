@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Linq;
 
 public class SaveManager : MonoBehaviour
 {
@@ -40,10 +42,13 @@ public class SaveManager : MonoBehaviour
     }
 
     //________________________________________
-    public void Save(string path, string data)
+    public void Save(string path, string rawData)
     {
+        // Compress
+        var dataCompress = CompressFile(rawData);
+        string data = Convert.ToBase64String(dataCompress);
         // ? : Encrypt raw data
-        data = EncryptionData(data);
+        //data = EncryptionData(data);
         // 7 : Write data to the file
         File.WriteAllText(path, data);
     }
@@ -58,12 +63,41 @@ public class SaveManager : MonoBehaviour
         {
             loadData = File.ReadAllText(path);
             Debug.Log($"Get data: {loadData}");
-            loadData = DecryptionData(loadData);
+            //loadData = DecryptionData(loadData);
             return loadData;
         }
 
         Debug.LogError("No File founds in " + path);
         return loadData;
+    }
+
+    // Compression
+    private byte[] CompressFile(string rawData)
+    {
+        byte[] data = Encoding.UTF8.GetBytes(rawData);
+        using (var memoryStream = new MemoryStream())
+        {
+            using (var gzipStream = new GZipStream(memoryStream, System.IO.Compression.CompressionLevel.Optimal))
+            {
+                gzipStream.Write(data, 0, data.Length);
+            }
+            return data.ToArray();
+        }
+    }
+
+    private string DecompressFile(byte[] compressData)
+    {
+        using (var memoryStream = new MemoryStream(compressData))
+        {
+            using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+            {
+                using (var outputMemoryStream = new MemoryStream())
+                {
+                    gzipStream.CopyTo(outputMemoryStream);
+                    return Encoding.UTF8.GetString(outputMemoryStream.ToArray());
+                }
+            }
+        }
     }
 
     // Encryption
