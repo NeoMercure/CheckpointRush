@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using System.ComponentModel;
 using System.Collections.Generic;
 
 [Serializable]
@@ -97,14 +98,16 @@ public class PlayerInfoData
     public string name;
     public string surname;
     public string email;
+    public CountryCode countryCode;
     public string phoneNumber;
     public GenderType genderType;
 
-    public PlayerInfoData(string name, string surname, string email, string phoneNumber, GenderType genderType)
+    public PlayerInfoData(string name, string surname, string email, CountryCode countryCode, string phoneNumber, GenderType genderType)
     {
         this.name = name;
         this.surname = surname;
         this.email = email;
+        this.countryCode = countryCode;
         this.phoneNumber = phoneNumber;
         this.genderType = genderType;
     }
@@ -115,4 +118,13 @@ public enum GenderType
     Woman,
     Man,
     Other,
+}
+
+public enum CountryCode
+{
+    None,
+    [Description("+356")]
+    Malta,
+    [Description("+33")]
+    France,
 }
