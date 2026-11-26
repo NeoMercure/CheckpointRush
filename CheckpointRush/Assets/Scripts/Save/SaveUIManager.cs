@@ -2,6 +2,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
+using Unity.VisualScripting;
 using System.Text.RegularExpressions;
 
 public class SaveUIManager : MonoBehaviour
@@ -12,6 +14,8 @@ public class SaveUIManager : MonoBehaviour
     [SerializeField] private TMP_InputField emailInputField;
     [SerializeField] private TMP_InputField phoneNumberInputField;
     [SerializeField] private TMP_Dropdown genderTypeDropdown;
+    [Space]
+    [SerializeField] private TMP_Dropdown countryDropDown;
 
     [Space]
     [Header("Arrow Selector")]
@@ -47,48 +51,79 @@ public class SaveUIManager : MonoBehaviour
 
     private void OnEnable()
     {
-        nameInputField.onEndEdit.AddListener(OnNameEndEdit);
-        surnameInputField.onEndEdit.AddListener(OnSurnameEndEdit);
-        emailInputField.onEndEdit.AddListener(OnEmailEndEdits);
-        phoneNumberInputField.onEndEdit.AddListener(OnPhoneNumberEndEdit);
+        nameInputField.onValueChanged.AddListener(OnNameValueChanged);
+        surnameInputField.onValueChanged.AddListener(OnSurnameValueChanged);
+        emailInputField.onValueChanged.AddListener(OnEmailValueChanged);
+        countryDropDown.onValueChanged.AddListener(OnCountryValueChange);
+        phoneNumberInputField.onValueChanged.AddListener(OnPhoneNumberValueChanged);
     }
 
     private void OnDisable()
     {
-        nameInputField.onEndEdit.RemoveListener(OnNameEndEdit);
-        surnameInputField.onEndEdit.RemoveListener(OnSurnameEndEdit);
-        emailInputField.onEndEdit?.RemoveListener(OnPhoneNumberEndEdit);
-        phoneNumberInputField.onEndEdit.RemoveListener(OnPhoneNumberEndEdit);
+        nameInputField.onValueChanged.RemoveListener(OnNameValueChanged);
+        surnameInputField.onValueChanged.RemoveListener(OnSurnameValueChanged);
+        emailInputField.onValueChanged?.RemoveListener(OnPhoneNumberValueChanged);
+        countryDropDown.onValueChanged.RemoveListener(OnCountryValueChange);
+        phoneNumberInputField.onValueChanged.RemoveListener(OnPhoneNumberValueChanged);
     }
 
-    private void OnNameEndEdit(string arg0)
+    private void OnNameValueChanged(string arg0)
     {
         bool isValid = nameRegex.IsMatch(arg0);
         isNameValid = isValid;
         nameInvalidText.enabled = !isValid;
     }
 
-    private void OnSurnameEndEdit(string arg0)
+    private void OnSurnameValueChanged(string arg0)
     {
         bool isValid = nameRegex.IsMatch(arg0);
         isSurnameValid = isValid;
         surnameInvalidText.enabled = !isValid;
     }
 
-    private void OnEmailEndEdits(string arg0)
+    private void OnEmailValueChanged(string arg0)
     {
         bool isValid = emailRegex.IsMatch(arg0);
         isEmailValid = isValid;
-        Debug.Log($"<color=cyan>Email : {isEmailValid}</color>");
         emailInvalidText.enabled = !isValid;
     }
 
-    private void OnPhoneNumberEndEdit(string arg0)
+    private void OnCountryValueChange(int arg0)
     {
-        bool isValid = phoneNumberRegex.IsMatch(arg0);
+        bool isValid = RightRegexPatern((CountryCode)arg0).IsMatch(phoneNumberInputField.text);
         isPhoneNumberValid = isValid;
-        Debug.Log($"<color=magenta>Phone {isPhoneNumberValid}");
         phoneNumberInvalidText.enabled = !isValid;
+    }
+
+    private void OnPhoneNumberValueChanged(string arg0)
+    {
+        CountryCode countryValue = (CountryCode)countryDropDown.value;
+
+        bool isValid = RightRegexPatern(countryValue).IsMatch(arg0);
+        isPhoneNumberValid = isValid;
+        phoneNumberInvalidText.enabled = !isValid;
+    }
+
+    private Regex RightRegexPatern(CountryCode country)
+    {
+        Regex regex = phoneNumberRegex;
+
+        switch (country)
+        {
+            case CountryCode.None:
+                regex = new("^\\+(?:[1-9]\\d{0,2})(?:[\\s.-]?\\d{2,3}){2,5}$");
+                break;
+            case CountryCode.Malta:
+                regex = new("^\\d{4}[\\s.-]?\\d{4}$");
+                break;
+            case CountryCode.France:
+                regex = new("^\\d{1,2}(?:[\\s.-]?\\d{2}){4}$");
+                break;
+            default:
+                break;
+        }
+
+        return regex;
     }
 
     private bool IsAllValid()
@@ -105,7 +140,7 @@ public class SaveUIManager : MonoBehaviour
     {
         if (IsAllValid())
         {
-            PlayerInfoData profile = new(nameInputField.text, surnameInputField.text, emailInputField.text, phoneNumberInputField.text, (GenderType)genderTypeDropdown.value);
+            PlayerInfoData profile = new(nameInputField.text, surnameInputField.text, emailInputField.text, (CountryCode)countryDropDown.value, phoneNumberInputField.text, (GenderType)genderTypeDropdown.value);
 
             if (PlayerDataInstance.playerInfoDataInstance.Count == 0)
             {
@@ -118,7 +153,11 @@ public class SaveUIManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"<color=red> Y'a au mois un faux</color>");
+            nameInvalidText.enabled = isNameValid;
+            surnameInvalidText.enabled = isSurnameValid;
+            emailInvalidText.enabled = isEmailValid;
+            phoneNumberInvalidText.enabled = isPhoneNumberValid;
+            Debug.Log($"<color=red>Can't save with invalid info</color>");
         }
     }
 
@@ -158,6 +197,7 @@ public class SaveUIManager : MonoBehaviour
         nameInputField.text = profile.name;
         surnameInputField.text = profile.surname;
         emailInputField.text = profile.email;
+        countryDropDown.value = (int)profile.countryCode;
         phoneNumberInputField.text = profile.phoneNumber;
         genderTypeDropdown.value = (int)profile.genderType;
 
@@ -182,7 +222,7 @@ public class SaveUIManager : MonoBehaviour
 
     private PlayerInfoData DefaultValues()
     {
-        PlayerInfoData profile = new(string.Empty, string.Empty, string.Empty, string.Empty, GenderType.Woman);
+        PlayerInfoData profile = new(string.Empty, string.Empty, string.Empty, CountryCode.None, string.Empty, GenderType.Woman);
 
         return profile;
     }
