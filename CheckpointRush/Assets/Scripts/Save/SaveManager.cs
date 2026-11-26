@@ -4,11 +4,10 @@ using System.Text;
 using UnityEngine;
 using System.IO.Compression;
 using System.Security.Cryptography;
-using System.Linq;
 
 public class SaveManager : MonoBehaviour
 {
-    // Singleton
+    #region Singleton
     private static SaveManager _instance;
     public static SaveManager Instance
     {
@@ -40,15 +39,17 @@ public class SaveManager : MonoBehaviour
             Debug.LogError($"Singleton Error. Found duplicates of type: {GetType()} on {Instance.name} & {name}");
         }
     }
+    #endregion
 
-    //________________________________________
     public void Save(string path, string rawData)
     {
         // Compress
         var dataCompress = CompressFile(rawData);
         string data = Convert.ToBase64String(dataCompress);
+
         // ? : Encrypt raw data
-        //data = EncryptionData(data);
+        data = EncryptionData(data);
+
         // 7 : Write data to the file
         File.WriteAllText(path, data);
     }
@@ -62,9 +63,11 @@ public class SaveManager : MonoBehaviour
         if (File.Exists(path))
         {
             loadData = File.ReadAllText(path);
-            Debug.Log($"Get data: {loadData}");
-            //loadData = DecryptionData(loadData);
-            return loadData;
+            loadData = DecryptionData(loadData);
+
+            // Decompress
+            string decompressedData = DecompressFile(loadData);
+            return decompressedData;
         }
 
         Debug.LogError("No File founds in " + path);
@@ -77,19 +80,22 @@ public class SaveManager : MonoBehaviour
         byte[] data = Encoding.UTF8.GetBytes(rawData);
         using (var memoryStream = new MemoryStream())
         {
-            using (var gzipStream = new GZipStream(memoryStream, System.IO.Compression.CompressionLevel.Optimal))
+            using (var compress = new GZipStream(memoryStream, System.IO.Compression.CompressionLevel.Optimal))
             {
-                gzipStream.Write(data, 0, data.Length);
+                compress.Write(data, 0, data.Length);
             }
-            return data.ToArray();
+            return memoryStream.ToArray();
         }
     }
 
-    private string DecompressFile(byte[] compressData)
+    // Decompress
+    private string DecompressFile(string loadDataCompressed)
     {
-        using (var memoryStream = new MemoryStream(compressData))
+        byte[] compressedByte = Convert.FromBase64String(loadDataCompressed);
+
+        using (var memoryStream = new MemoryStream(compressedByte))
         {
-            using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+            using (var gzipStream = new GZipStream(memoryStream, System.IO.Compression.CompressionMode.Decompress))
             {
                 using (var outputMemoryStream = new MemoryStream())
                 {
